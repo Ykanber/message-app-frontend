@@ -114,6 +114,7 @@
       margin-bottom: 2px;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.1.0/index.js" type="module"></script>
 </head>
 <body>
 <div id="usernameScreen">
@@ -128,8 +129,19 @@
   <div id="onlineUsers">Online: <span id="onlineList">No one online</span></div>
 
   <div id="chat"></div>
-  <input id="messageInput" onkeypress="checkEnter(event)" placeholder="Type a message..." type="text">
+  <div style="position: relative; display: flex; align-items: center;">
+    <input id="messageInput" onkeypress="checkEnter(event)" placeholder="Type a message..." style="flex-grow: 1;"
+           type="text">
+    <button onclick="toggleEmojiPicker()"
+            style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;">&#128512;
+    </button>
+    <emoji-picker id="emojiPicker" style="display: none; position: absolute; bottom: 40px; right: 0;"></emoji-picker>
+  </div>
   <button onclick="sendMessage()">Send</button>
+
+  <!-- Load Twemoji Picker (Lightweight and Fast) -->
+  <script src="https://cdn.jsdelivr.net/npm/twemoji-picker/dist/twemoji-picker.min.js"></script>
+
 </div>
 
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -215,6 +227,26 @@
       sendMessage();
     }
   }
+
+  const emojiPicker = document.getElementById("emojiPicker");
+
+  function toggleEmojiPicker() {
+    emojiPicker.style.display = emojiPicker.style.display === "none" ? "block" : "none";
+  }
+
+  emojiPicker.addEventListener("emoji-click", (event) => {
+    const emoji = event.detail.unicode;
+    const messageInput = document.getElementById("messageInput");
+    messageInput.value += emoji;
+    emojiPicker.style.display = "none"; // Hide after selection
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("#emojiPicker") && !event.target.closest("button")) {
+      emojiPicker.style.display = "none";
+    }
+  });
+
 </script>
 </body>
 </html>

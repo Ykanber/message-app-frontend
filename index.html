@@ -17,7 +17,7 @@
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
 <script>
-  const socket = io("https://40f9-92-44-31-225.ngrok-free.app");
+  const socket = io("https://message-app-server.onrender.com");
   socket.on("connect", () => {
     console.log("✅ Connected to backend:", socket.id);
   });

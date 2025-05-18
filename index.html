@@ -118,7 +118,7 @@
 <body>
 <div id="usernameScreen">
   <h1>Enter Username</h1>
-  <input type="text" id="usernameInput" placeholder="Your username">
+  <input id="usernameInput" placeholder="Your username" type="text">
   <button onclick="setUsername()">Join Chat</button>
 </div>
 
@@ -128,7 +128,7 @@
   <div id="onlineUsers">Online: <span id="onlineList">No one online</span></div>
 
   <div id="chat"></div>
-  <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="checkEnter(event)">
+  <input id="messageInput" onkeypress="checkEnter(event)" placeholder="Type a message..." type="text">
   <button onclick="sendMessage()">Send</button>
 </div>
 
@@ -144,7 +144,7 @@
 
   let username = "";
 
-  window.onload = function() {
+  window.onload = function () {
     usernameScreen.style.display = "flex";
     chatScreen.style.display = "none";
   };
@@ -183,7 +183,7 @@
   function sendMessage() {
     const text = messageInput.value.trim();
     if (text !== "" && username !== "") {
-      const message = { username, text };
+      const message = {username, text, timestamp: new Date().toISOString()};
       addMessage(message, true);
       socket.emit("mesajGonder", message);
       messageInput.value = "";
@@ -193,10 +193,14 @@
   function addMessage(msg, isOwnMessage) {
     const messageDiv = document.createElement("div");
     messageDiv.className = "message" + (isOwnMessage ? " own" : "");
+    const time = new Date(msg.timestamp);
+    const timeString = time.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    console.log(timeString);
     messageDiv.innerHTML = `
-        <div class="username">${msg.username}</div>
-        <div class="text">${msg.text}</div>
-      `;
+  <div class="username">${msg.username} <span style="font-size: 0.75rem; color: #999; margin-left: 8px;">${timeString}</span></div>
+  <div class="text">${msg.text}</div>
+`;
+
     chat.appendChild(messageDiv);
     chat.scrollTop = chat.scrollHeight;
   }

@@ -15,8 +15,22 @@
 <button onclick="sendMessage()">Send</button>
 
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
 <script>
-  const socket = io("https://c8a1-92-44-31-225.ngrok-free.app");
+  const socket = io("https://40f9-92-44-31-225.ngrok-free.app");
+  socket.on("connect", () => {
+    console.log("✅ Connected to backend:", socket.id);
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error("❌ Connection Error:", error);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.warn("🔌 Disconnected:", reason);
+  });
+
+
   const chat = document.getElementById("chat");
   const messageInput = document.getElementById("messageInput");
 

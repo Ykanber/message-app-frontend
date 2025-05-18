@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Chat App</title>
+  <title>Simple Chat App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,9 +27,10 @@
     }
 
     #chatScreen {
-      height: 500px;
+      height: 550px;
       display: flex;
       flex-direction: column;
+      width: 100%;
     }
 
     h1 {
@@ -60,6 +61,19 @@
       background-color: #45a049;
     }
 
+    #onlineUsers {
+      width: 100%;
+      max-height: 80px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
     #chat {
       flex-grow: 1;
       width: 100%;
@@ -75,9 +89,6 @@
       margin-bottom: 8px;
       display: flex;
       flex-direction: column;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fadeIn 0.3s forwards;
     }
 
     .message.own {
@@ -102,116 +113,99 @@
       color: #555;
       margin-bottom: 2px;
     }
-
-    @keyframes fadeIn {
-      0% {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
   </style>
-
 </head>
 <body>
-<!-- Username Entry Screen -->
 <div id="usernameScreen">
-  <h1>Enter Your Username</h1>
-  <input type="text" id="usernameInput" placeholder="Your Username...">
-  <button onclick="setUsername()">Enter Chat</button>
+  <h1>Enter Username</h1>
+  <input type="text" id="usernameInput" placeholder="Your username">
+  <button onclick="setUsername()">Join Chat</button>
 </div>
 
-<!-- Chat Screen -->
 <div id="chatScreen">
-  <h1>Chat App</h1>
+  <h1>Chat Room</h1>
+
+  <div id="onlineUsers">Online: <span id="onlineList">No one online</span></div>
+
   <div id="chat"></div>
-  <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="checkEnter(event)">
+  <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="checkEnter(event)">
   <button onclick="sendMessage()">Send</button>
 </div>
 
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script>
   const socket = io("https://message-app-server.onrender.com");
+
   const chat = document.getElementById("chat");
   const messageInput = document.getElementById("messageInput");
   const usernameScreen = document.getElementById("usernameScreen");
   const chatScreen = document.getElementById("chatScreen");
+  const onlineList = document.getElementById("onlineList");
 
   let username = "";
 
-  // Show username screen on page load
   window.onload = function() {
     usernameScreen.style.display = "flex";
     chatScreen.style.display = "none";
   };
 
-  // Set username and show chat screen
   function setUsername() {
     const input = document.getElementById("usernameInput").value.trim();
     if (input !== "") {
       username = input;
       usernameScreen.style.display = "none";
       chatScreen.style.display = "flex";
-      connectToChat();
+      socket.emit("join", username);
     } else {
       alert("Please enter a username.");
     }
   }
 
-  // Connect to chat
-  function connectToChat() {
-    // Load past messages
-    socket.on("gecmisMesajlar", (messages) => {
-      messages.forEach(msg => addMessage(msg, msg.username === username));
-      chat.scrollTop = chat.scrollHeight;
-    });
+  socket.on("gecmisMesajlar", (messages) => {
+    messages.forEach(msg => addMessage(msg, msg.username === username));
+    chat.scrollTop = chat.scrollHeight;
+  });
 
-    // Receive new message
-    socket.on("mesaj", (msg) => {
-      // Only add message if it's not your own (prevents duplicate)
-      if (msg.username !== username) {
-        addMessage(msg, false);
-        chat.scrollTop = chat.scrollHeight;
-      }
-    });
-  }
+  socket.on("mesaj", (msg) => {
+    if (msg.username !== username) {
+      addMessage(msg, false);
+    }
+  });
 
-  // Send message
+  socket.on("onlineUsers", (users) => {
+    if (users.length === 0) {
+      onlineList.textContent = "No one online";
+    } else {
+      onlineList.textContent = users.join(", ");
+    }
+  });
+
   function sendMessage() {
     const text = messageInput.value.trim();
     if (text !== "" && username !== "") {
       const message = { username, text };
-
-      // Immediately show the message as "own" (before sending to server)
       addMessage(message, true);
       socket.emit("mesajGonder", message);
       messageInput.value = "";
     }
   }
 
-  // Add message to chat
   function addMessage(msg, isOwnMessage) {
     const messageDiv = document.createElement("div");
     messageDiv.className = "message" + (isOwnMessage ? " own" : "");
     messageDiv.innerHTML = `
-      <div class="username">${msg.username}</div>
-      <div class="text">${msg.text}</div>
-    `;
+        <div class="username">${msg.username}</div>
+        <div class="text">${msg.text}</div>
+      `;
     chat.appendChild(messageDiv);
     chat.scrollTop = chat.scrollHeight;
   }
 
-  // Send on Enter key press
   function checkEnter(event) {
     if (event.key === "Enter") {
       sendMessage();
     }
   }
 </script>
-
-
 </body>
 </html>

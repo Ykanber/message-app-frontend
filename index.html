@@ -135,6 +135,11 @@
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script>
   const socket = io("https://message-app-server.onrender.com");
+  
+
+  socket.on("connect_error", (err) => {
+    console.error("Failed to connect to the server:", err.message);
+  });
 
   const chat = document.getElementById("chat");
   const messageInput = document.getElementById("messageInput");
